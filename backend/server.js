@@ -4,6 +4,7 @@ dotenv.config();
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
+const { connectDB } = require('./utils/db');
 
 const app = express();
 
@@ -21,6 +22,12 @@ app.get('/', (req, res) => {
 const server = http.createServer(app);
 
 const PORT = process.env.PORT || 8000;
-server.listen(PORT, () => {
-    console.log("Server is listening on port : ", PORT);
-})
+
+const startServer = async () => {
+    await connectDB();
+    server.listen(PORT, () => {
+        console.log(`Server is listening at http://localhost:${PORT}`);
+    })
+}
+
+startServer();
