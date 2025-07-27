@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const http = require('http');
 const { connectDB } = require('./utils/db');
+const userRoutes = require('./routes/user.routes')
 
 const app = express();
 
@@ -18,6 +19,8 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => {
     res.send({ status: 200, message: "Server is up" });
 })
+
+app.use('/api/users', userRoutes);
 
 const server = http.createServer(app);
 

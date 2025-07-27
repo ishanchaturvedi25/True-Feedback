@@ -37,7 +37,22 @@ const UserSchema = new mongoose.Schema({
     contexts: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Context'
-    }]
+    }],
+    otp: {
+        code: {
+            type: String,
+            minlength: [6, 'OTP must be 6 digits long'],
+            maxlength: [6, 'OTP must be 6 digits long']
+        },
+        expiry: {
+            type: Date,
+            default: () => new Date(Date.now() + 30 * 1000),
+        }
+    },
+    lastOtpSentTime: {
+        type: Date,
+        default: null
+    }
 }, { timestamps: true });
 
 const UserModel = mongoose.model('User', UserSchema);
