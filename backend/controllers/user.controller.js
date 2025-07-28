@@ -28,6 +28,8 @@ const registerUser = async (req, res) => {
         const existingUser  = await userModel.findOne({ $or: [{email}, {username}] });
 
         if (existingUser && existingUser.email === email) {
+            if (existingUser.isEmailVerified)
+                return res.status(409).json({ message: 'Email is already registered' });
             return res.status(202).json({ message: 'Please verify your email address' });
         } else if (existingUser && existingUser.username === username) {
             return res.status(400).json({ message: 'Username already exists' });
@@ -73,11 +75,12 @@ const verifyOtp = async (req, res) => {
         user.isEmailVerified = true;
         user.otp = null;
         await user.save();
-        const token = jwt.sign({ userId: user._id, email: user.email }, process.env.jwt_secret, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user._id, email: user.email }, process.env.jwt_secret, { expiresIn: '120h' });
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict'
+            sameSite: 'strict',
+            maxAge: 120 * 60 * 1000
         });
         return res.status(201).json({
             message: 'User registered successfully',
@@ -122,8 +125,75 @@ const getOtp = async (req, res) => {
     }
 }
 
+const login = async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
+
+        if ((!email && !username) || !password) {
+            return res.status(400).json({ message: 'Email or username and password are required' });
+        }
+
+        const user = await userModel.findOne({ $or: [{email}, {username}] }).select('+password');
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Invalid password' });
+        }
+
+        if (!user.isEmailVerified) {
+            return res.status(202).json({ message: 'Please verify your email address' });
+        }
+
+        const token = jwt.sign({ userId: user._id, email: user.email }, process.env.jwt_secret, { expiresIn: '120h' });
+
+        res.cookie('token', token, {
+            // sameSite: 'strict',
+            // secure: process.env.NODE_ENV === 'production',
+            // httpOnly: true,
+            maxAge: 120 * 60 * 1000
+        })
+
+        return res.status(200).json({
+            message: 'Login successful',
+            user: {
+                _id: user._id,
+                name: user.name,
+                username: user.username,
+                email: user.email,
+                isReceivingFeedback: user.isReceivingFeedback,
+                isEmailVerified: user.isEmailVerified
+            },
+            token
+        });
+    } catch (error) {
+        console.error('Error during login: ', error);
+        return res.status(500).json({ message: 'Internal server error during login' });
+    }
+}
+
+const logout = (req, res) => {
+    try {
+        res.clearCookie('token', {
+            // httpOnly: true,
+            // secure: process.env.NODE_ENV === 'production',
+            // sameSite: 'strict'
+        });
+        return res.status(200).json({ message: 'Logout successful' });
+    } catch (error) {
+        console.error('Error during logout: ', error);
+        return res.status(500).json({ message: 'Internal server error during logout' });
+    }
+}
+
 module.exports = {
     registerUser,
     verifyOtp,
-    getOtp
+    getOtp,
+    login,
+    logout
 };
