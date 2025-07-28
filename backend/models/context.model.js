@@ -15,6 +15,7 @@ const ContextSchema = new mongoose.Schema({
     description: {
         type: String,
         required: false,
+        default: ''
     },
     userId: {
         type: mongoose.Schema.Types.ObjectId,

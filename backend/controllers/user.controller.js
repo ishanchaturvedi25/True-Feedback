@@ -152,9 +152,9 @@ const login = async (req, res) => {
         const token = jwt.sign({ userId: user._id, email: user.email }, process.env.jwt_secret, { expiresIn: '120h' });
 
         res.cookie('token', token, {
-            // sameSite: 'strict',
-            // secure: process.env.NODE_ENV === 'production',
-            // httpOnly: true,
+            sameSite: 'strict',
+            secure: process.env.NODE_ENV === 'production',
+            httpOnly: true,
             maxAge: 120 * 60 * 1000
         })
 
@@ -179,9 +179,9 @@ const login = async (req, res) => {
 const logout = (req, res) => {
     try {
         res.clearCookie('token', {
-            // httpOnly: true,
-            // secure: process.env.NODE_ENV === 'production',
-            // sameSite: 'strict'
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict'
         });
         return res.status(200).json({ message: 'Logout successful' });
     } catch (error) {
