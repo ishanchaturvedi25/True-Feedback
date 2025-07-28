@@ -45,8 +45,7 @@ const UserSchema = new mongoose.Schema({
             maxlength: [6, 'OTP must be 6 digits long']
         },
         expiry: {
-            type: Date,
-            default: () => new Date(Date.now() + 30 * 1000),
+            type: Date
         }
     },
     lastOtpSentTime: {

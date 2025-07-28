@@ -40,7 +40,8 @@ const registerUser = async (req, res) => {
                 email,
                 password: newPassword,
                 otp: {
-                    code: otp
+                    code: otp,
+                    expiry: new Date(Date.now() + 60 * 1000)
                 }
             });
             newUser.lastOtpSentTime = new Date();
@@ -63,17 +64,15 @@ const verifyOtp = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        console.log('user.otp: ', user.otp);
         if (user.otp.code !== otp) {
             return res.status(400).json({ message: 'Invalid OTP' });
         }
-        // if (user.otp.expiry < new Date()) {
-        //     return res.status(400).json({ message: 'OTP has expired' });
-        // }
+        if (user.otp.expiry < new Date()) {
+            return res.status(400).json({ message: 'OTP has expired' });
+        }
         user.isEmailVerified = true;
         user.otp = null;
         await user.save();
-        console.log('reached here: ', user);
         const token = jwt.sign({ userId: user._id, email: user.email }, process.env.jwt_secret, { expiresIn: '1h' });
         res.cookie('token', token, {
             httpOnly: true,
@@ -93,11 +92,18 @@ const verifyOtp = async (req, res) => {
 
 const getOtp = async (req, res) => {
     try {
-        const { email, username } = req.body;
-        if (!email || !username) {
-            return res.status(400).json({ message: 'Email or username are required' });
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required' });
         }
-        const user = await userModel.findOne({ $or: [{ email }, { username }] });
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: 'Invalid email format' });
+        }
+        const user = await userModel.findOne({ email });
+        if (user.isEmailVerified) {
+            return res.status(400).json({ message: 'Email is already verified' });
+        }
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -107,7 +113,7 @@ const getOtp = async (req, res) => {
         user.lastOtpSentTime = new Date();
         const otp = generateOtp();
         user.otp.code = otp;
-        user.otp.expiry = new Date(Date.now() + 30 * 1000);
+        user.otp.expiry = new Date(Date.now() + 60 * 1000);
         await user.save();
         await sendEmail(email, 'Verify your email', `Your OTP is ${otp}`, `<p>Your OTP is <strong>${otp}</strong></p>`);
         return res.status(200).json({ message: 'OTP generated and sent to email' });
