@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 const { connectDB } = require('./utils/db');
 const userRoutes = require('./routes/user.routes');
 const contextRoutes = require('./routes/context.routes');
+const feedbackRoutes = require('./routes/feedback.routes');
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/users', userRoutes);
 app.use('/api/contexts', contextRoutes);
+app.use('/api/feedbacks', feedbackRoutes);
 
 const server = http.createServer(app);
 
