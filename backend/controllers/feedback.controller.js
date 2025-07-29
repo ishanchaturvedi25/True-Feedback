@@ -3,7 +3,8 @@ const contextModel = require('../models/context.model');
 
 const submitFeedback = async (req, res) => {
     try {
-        const { contextId, feedbackMessage } = req.body;
+        const { contextId } = req.params;
+        const { feedbackMessage } = req.body;
 
         if (!contextId || !feedbackMessage || feedbackMessage.trim() === '') {
             return res.status(400).json({ message: "All fields are required" });
