@@ -1,0 +1,51 @@
+// src/context/AuthContext.jsx
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { login as loginUser, logout as logoutUser } from "../services/authService";
+import apiClient from "../services/api";
+
+const AuthContext = createContext();
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const res = await apiClient.post("/users/me", null, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+          console.log("User fetched from token:", res.data?.user);
+          setUser(res.data?.user || null);
+        } catch (err) {
+          console.error("Invalid token or user fetch failed", err);
+          logoutUser();
+        }
+      }
+      setLoading(false);
+    };
+    fetchUser();
+  }, []);
+
+  const login = async (identifier, password) => {
+    const userRes = await loginUser(identifier, password);
+    setUser(userRes);
+  };
+
+  const logout = () => {
+    logoutUser();
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout, loading, isLoggedIn: !!user }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => useContext(AuthContext);
