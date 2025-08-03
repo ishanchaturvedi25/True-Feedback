@@ -3,6 +3,8 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import PublicRoute from "./utils/PublicRoute";
+import SignUp from "./pages/SignUp";
+import VerifyEmail from "./pages/VerifyEmail";
 
 const App = () => {
   return (
@@ -21,6 +23,22 @@ const App = () => {
             <Login />
           </PublicRoute>
         } />
+        <Route
+          path="/signup"
+          element={
+            <PublicRoute>
+              <SignUp />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/verify-email"
+          element={
+            <PublicRoute>
+              <VerifyEmail />
+            </PublicRoute>
+          }
+        />
       </Routes>
     </Router>
   );

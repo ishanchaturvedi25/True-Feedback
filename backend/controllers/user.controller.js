@@ -82,8 +82,8 @@ const verifyOtp = async (req, res) => {
             sameSite: 'strict',
             maxAge: 120 * 60 * 1000
         });
-        return res.status(201).json({
-            message: 'User registered successfully',
+        return res.status(200).json({
+            message: 'Email verified successfully',
             user,
             token
         });
@@ -156,7 +156,7 @@ const login = async (req, res) => {
 
         res.cookie('token', token, {
             sameSite: 'strict',
-            secure: process.env.NODE_ENV === 'production',
+            secure: false,
             httpOnly: true,
             maxAge: 120 * 60 * 1000
         })

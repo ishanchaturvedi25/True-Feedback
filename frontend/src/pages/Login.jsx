@@ -1,12 +1,13 @@
-import React, { useState } from "react";
-import { login } from "../services/authService";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,6 +51,12 @@ const Login = () => {
         >
           Login
         </button>
+        <p className="text-sm text-center mt-4">
+          Don’t have an account?{" "}
+          <Link to="/signup" className="text-blue-600 hover:underline">
+            Sign Up
+          </Link>
+        </p>
       </form>
     </div>
   );
