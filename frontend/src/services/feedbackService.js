@@ -3,7 +3,7 @@ import apiClient from "./api";
 export const getContextDetails = async (id) => {
   try {
     const response = await apiClient.get(`/feedbacks/get-context/${id}`);
-    return response;
+    return response.data;
   } catch (error) {
     console.error("Error fetching context details:", error);
     throw error;

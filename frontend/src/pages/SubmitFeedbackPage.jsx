@@ -13,7 +13,7 @@ const SubmitFeedbackPage = () => {
       try {
         const res = await getContextDetails(contextId);
         console.log("res:", res);
-        setContext(res.data);
+        setContext(res.context);
       } catch (error) {
         console.error(error);
         setMessage("Context not found");
