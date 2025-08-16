@@ -10,6 +10,10 @@ const submitFeedback = async (req, res) => {
             return res.status(400).json({ message: "All fields are required" });
         }
 
+        if (feedbackMessage.length < 3) {
+            return res.status(400).json({ message: "Feedback message must be at least 3 characters long" });
+        }
+
         const context = await contextModel.findById(contextId);
         if (!context) {
             return res.status(404).json({ message: "Context not found" });

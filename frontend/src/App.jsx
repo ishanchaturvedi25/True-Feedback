@@ -5,6 +5,8 @@ import ProtectedRoute from "./utils/ProtectedRoute";
 import PublicRoute from "./utils/PublicRoute";
 import SignUp from "./pages/SignUp";
 import VerifyEmail from "./pages/VerifyEmail";
+import ContextDetails from "./pages/ContextDetails";
+import SubmitFeedbackPage from "./pages/SubmitFeedbackPage";
 
 const App = () => {
   return (
@@ -37,6 +39,20 @@ const App = () => {
             <PublicRoute>
               <VerifyEmail />
             </PublicRoute>
+          }
+        />
+        <Route
+          path="/context/:id"
+          element={
+            <ProtectedRoute>
+              <ContextDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/submit-feedback/:contextId"
+          element={
+            <SubmitFeedbackPage />
           }
         />
       </Routes>

@@ -40,8 +40,17 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const updateReceiveFeedback = async (value) => {
+    try {
+      const res = await apiClient.patch("/users/receive-feedback", { isReceivingFeedback: value });
+      setUser((prev) => ({ ...prev, isReceivingFeedback: res.data.isReceivingFeedback }));
+    } catch (err) {
+      console.error("Failed to update feedback toggle", err);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, setUser, login, logout, loading, isLoggedIn: !!user }}>
+    <AuthContext.Provider value={{ user, setUser, login, logout, loading, isLoggedIn: !!user, updateReceiveFeedback }}>
       {children}
     </AuthContext.Provider>
   );

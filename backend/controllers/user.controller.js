@@ -205,11 +205,56 @@ const getUserDetails = async (req, res) => {
     }
 }
 
+const updateReceiveFeedback = async (req, res) => {
+    try {
+        if (!req.userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const { enabled } = req.body;
+
+        if (typeof enabled !== 'boolean') {
+            return res.status(400).json({ message: 'Invalid request body' });
+        }
+
+        const user = await userModel.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        if (user.isReceivingFeedback !== enabled) {
+            user.isReceivingFeedback = enabled;
+            await user.save();
+        }
+
+        return res.status(200).json({ message: 'Feedback preference updated successfully', receiveFeedback: user.isReceivingFeedback });
+    } catch (error) {
+        return res.status(500).json({ message: 'Internal server error updating feedback preference' });
+    }
+}
+
+const getFeedbackStatus = async (req, res) => {
+    if (!req.userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    try {
+        const user = await userModel.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        return res.status(200).json({ receiveFeedback: user.isReceivingFeedback });
+    } catch (error) {
+        console.error('Error fetching user feedback status:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
 module.exports = {
     registerUser,
     verifyOtp,
     getOtp,
     login,
     logout,
-    getUserDetails
+    getUserDetails,
+    updateReceiveFeedback,
+    getFeedbackStatus
 };
