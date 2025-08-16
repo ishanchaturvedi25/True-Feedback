@@ -54,7 +54,25 @@ const getAllFeedbacksByContextId = async (req, res) => {
     }
 }
 
+const getContextById = async (req, res) => {
+    try {
+        const { contextId } = req.params;
+        if (!contextId) {
+            return res.status(400).json({ message: "Context ID is required" });
+        }
+        const context = await contextModel.findById(contextId);
+        if (!context) {
+            return res.status(404).json({ message: "Context not found" });
+        }
+        res.status(200).json({ context });
+    } catch (error) {
+        console.error("Error fetching context:", error);
+        res.status(500).json({ message: "Internal server error while fetching context" });
+    }
+}
+
 module.exports = {
     submitFeedback,
-    getAllFeedbacksByContextId
+    getAllFeedbacksByContextId,
+    getContextById
 }
