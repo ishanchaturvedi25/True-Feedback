@@ -3,7 +3,7 @@ const ContextModel = require('../models/context.model');
 
 const createContext = async (req, res) => {
     try {
-        const { label = '', description = '' } = req.body;
+        const { label, description } = req.body;
 
         if (!label || label.trim() === '') {
             return res.status(400).json({ message: 'Label is required' });

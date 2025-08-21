@@ -82,8 +82,8 @@ const verifyOtp = async (req, res) => {
             sameSite: 'strict',
             maxAge: 120 * 60 * 1000
         });
-        return res.status(201).json({
-            message: 'User registered successfully',
+        return res.status(200).json({
+            message: 'Email verified successfully',
             user,
             token
         });
@@ -127,13 +127,16 @@ const getOtp = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const { identifier, password } = req.body;
 
-        if ((!email && !username) || !password) {
+        if (!identifier || !password) {
             return res.status(400).json({ message: 'Email or username and password are required' });
         }
 
-        const user = await userModel.findOne({ $or: [{email}, {username}] }).select('+password');
+        const isEmail = /^\S+@\S+\.\S+$/.test(identifier);
+        const user = await userModel.findOne(
+            isEmail ? { email: identifier } : { username: identifier }
+        ).select('+password');
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -153,7 +156,7 @@ const login = async (req, res) => {
 
         res.cookie('token', token, {
             sameSite: 'strict',
-            secure: process.env.NODE_ENV === 'production',
+            secure: false,
             httpOnly: true,
             maxAge: 120 * 60 * 1000
         })
@@ -190,10 +193,68 @@ const logout = (req, res) => {
     }
 }
 
+const getUserDetails = async (req, res) => {
+    try {
+        if (!req.userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        const user = await userModel.findById(req.userId).select('-otp');
+        return res.status(200).json({ message: 'User details fetched successfully', user });
+    } catch (error) {
+        return res.status(500).json({ message: 'Internal server error fetching user details' });
+    }
+}
+
+const updateReceiveFeedback = async (req, res) => {
+    try {
+        if (!req.userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const { enabled } = req.body;
+
+        if (typeof enabled !== 'boolean') {
+            return res.status(400).json({ message: 'Invalid request body' });
+        }
+
+        const user = await userModel.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        if (user.isReceivingFeedback !== enabled) {
+            user.isReceivingFeedback = enabled;
+            await user.save();
+        }
+
+        return res.status(200).json({ message: 'Feedback preference updated successfully', receiveFeedback: user.isReceivingFeedback });
+    } catch (error) {
+        return res.status(500).json({ message: 'Internal server error updating feedback preference' });
+    }
+}
+
+const getFeedbackStatus = async (req, res) => {
+    if (!req.userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    try {
+        const user = await userModel.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        return res.status(200).json({ receiveFeedback: user.isReceivingFeedback });
+    } catch (error) {
+        console.error('Error fetching user feedback status:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
 module.exports = {
     registerUser,
     verifyOtp,
     getOtp,
     login,
-    logout
+    logout,
+    getUserDetails,
+    updateReceiveFeedback,
+    getFeedbackStatus
 };
